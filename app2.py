@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import joblib
 import time
-import cloudpickle
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -15,23 +14,16 @@ st.set_page_config(
 # --- Model & Asset Loading ---
 @st.cache_resource
 def load_model_assets():
-    """Loads the trained model and model columns from disk."""
+    """Loads the trained model and model columns from disk using joblib."""
     try:
         model = joblib.load("model.joblib")
-    except (AttributeError, EOFError):
-        # If joblib fails due to pickle compatibility, fallback to cloudpickle
-        with open("model.joblib", "rb") as f:
-            model = cloudpickle.load(f)
+        model_columns = joblib.load("model_columns.joblib")
+        return model, model_columns
     except FileNotFoundError:
         return None, None
-
-    try:
-        model_columns = joblib.load("model_columns.joblib")
-    except FileNotFoundError:
-        model_columns = None
-
-    return model, model_columns
-
+    except Exception as e:
+        st.error(f"⚠️ Model loading failed: {e}")
+        return None, None
 
 model, model_columns = load_model_assets()
 
@@ -63,14 +55,8 @@ else:
     st.subheader("Property Feature Inputs")
 
     # Example lists (replace with real values from training)
-    CITIES_IN_MODEL = [
-        'San Luis', 'Yorba Linda', 'Anaheim', 'Fullerton', 'Brea',
-        'Newport Beach', 'Irvine', 'Santa Ana', 'Costa Mesa'
-    ]
-    STREETS_IN_MODEL = [
-        '921 Isabella Way', '123 Main St', '456 Oak Ave',
-        '789 Pine Ln', '101 Maple Dr', '212 Birch Rd'
-    ]
+    CITIES_IN_MODEL = ['San Luis', 'Yorba Linda', 'Anaheim', 'Fullerton', 'Brea', 'Newport Beach', 'Irvine', 'Santa Ana', 'Costa Mesa']
+    STREETS_IN_MODEL = ['921 Isabella Way', '123 Main St', '456 Oak Ave', '789 Pine Ln', '101 Maple Dr', '212 Birch Rd']
 
     # --- Input fields arranged in a grid ---
     col1, col2, col3, col4 = st.columns(4)
@@ -103,10 +89,13 @@ else:
         try:
             # Create input dict
             input_data = {
-                'area': area, 'bedrooms': bedrooms, 'bathrooms': bathrooms,
+                'area': area,
+                'bedrooms': bedrooms,
+                'bathrooms': bathrooms,
                 'mainroad': 1 if mainroad == 'Yes' else 0,
                 'basement': 1 if basement == 'Yes' else 0,
-                'parking': parking, 'city': city,
+                'parking': parking,
+                'city': city
             }
 
             # Convert to DataFrame and encode
