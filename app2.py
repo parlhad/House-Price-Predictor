@@ -7,7 +7,7 @@ import joblib
 def load_model_assets():
     """Load model and model columns from .joblib files."""
     try:
-        with open('final_model.joblib', 'rb') as f:
+        with open('model.joblib', 'rb') as f:
             model = joblib.load(f)
         with open('model_columns.joblib', 'rb') as f:
             model_columns = joblib.load(f)
