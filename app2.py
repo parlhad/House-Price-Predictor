@@ -60,19 +60,19 @@ if predict_button:
         st.error("❌ Model not available. Please check your deployment files.")
     else:
         try:
-            # Build input data using training column names
-            user_input = {
-                'citi': [city],                   # matches training column
-                'street': [street],               # lowercase
-                'sqft': [sqft],                   # area renamed to sqft
-                'bed': [bed],                     # bedrooms -> bed
-                'bath': [bath],                   # bathrooms -> bath
-                'parking': [parking],
-                'mainroad': [1 if mainroad == "Yes" else 0],
-                'basement': [1 if basement == "Yes" else 0],
-                # n_citi: numeric city encoding (dummy for now, will auto-fill below)
-            }
-            input_df = pd.DataFrame(user_input)
+           # Match training column names
+user_input = {
+    'citi': [city],
+    'street': [street],
+    'sqft': [area],
+    'bed': [bedrooms],
+    'bath': [bathrooms],
+    'n_citi': [parking],   # assuming 'n_citi' was parking or similar feature
+    'mainroad': [1 if mainroad == "Yes" else 0],
+    'basement': [1 if basement == "Yes" else 0]
+}
+input_df = pd.DataFrame(user_input)
+
 
             # If model expects 'n_citi', create a numeric encoding
             if "n_citi" in model_columns:
