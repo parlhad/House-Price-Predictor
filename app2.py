@@ -11,88 +11,65 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- MODEL & ASSETS LOADING ---
+# --- LOAD MODEL ---
 @st.cache_resource
-def load_model_assets():
-    """Load model and model columns from .joblib files safely."""
-    model, model_columns = None, None
+def load_model():
+    model = None
     try:
-        if os.path.exists("model.joblib") and os.path.exists("model_columns.joblib"):
+        if os.path.exists("model.joblib"):
             model = joblib.load("model.joblib")
-            model_columns = joblib.load("model_columns.joblib")
         else:
-            st.warning("⚠️ Model files not found. Please upload model.joblib and model_columns.joblib.")
+            st.warning("⚠️ Model file not found. Upload model.joblib.")
     except Exception as e:
-        st.error(f"❌ Error loading model assets: {e}")
-    return model, model_columns
+        st.error(f"❌ Error loading model: {e}")
+    return model
 
-model, model_columns = load_model_assets()
+model = load_model()
 
 # --- APP HEADER ---
 st.title("🏠 House Price Predictor")
 st.markdown("Provide property details below and get an instant price prediction.")
 
-# --- HORIZONTAL CENTERED INPUTS USING COLUMNS ---
-col1, col2, col3 = st.columns([1, 2, 1])  # Middle column will hold the inputs
+# --- USER INPUT ---
+CITY_STREET_MAP = {
+    "New York": ["Broadway", "5th Avenue", "Wall Street"],
+    "Los Angeles": ["Sunset Blvd", "Rodeo Drive", "Hollywood Blvd"]
+}
 
-with col2:
-    CITY_STREET_MAP = {
-        "New York": ["Broadway", "5th Avenue", "Wall Street"],
-        "Los Angeles": ["Sunset Blvd", "Rodeo Drive", "Hollywood Blvd"]
-    }
+city = st.selectbox("City", options=list(CITY_STREET_MAP.keys()))
+street = st.selectbox("Street", options=CITY_STREET_MAP[city])
+sqft = st.number_input("Area (sqft)", 100, 10000, 1500, step=50)
+bed = st.number_input("Bedrooms", 1, 10, 3)
+bath = st.number_input("Bathrooms", 1, 10, 2)
+parking = st.number_input("Parking Spots", 0, 10, 2)
+mainroad = st.selectbox("Mainroad Access", ["Yes", "No"])
+basement = st.selectbox("Basement", ["Yes", "No"])
+predict_button = st.button("🔮 Predict Price")
 
-    st.subheader("Property Details")
-
-    city = st.selectbox("City", options=list(CITY_STREET_MAP.keys()))
-    street = st.selectbox("Street", options=CITY_STREET_MAP[city])
-
-    sqft = st.number_input("Area (sqft)", 100, 10000, 1500, step=50)
-    bed = st.number_input("Bedrooms", 1, 10, 3)
-    bath = st.number_input("Bathrooms", 1, 10, 2)
-    parking = st.number_input("Parking Spots", 0, 10, 2)
-
-    mainroad = st.selectbox("Mainroad Access", ["Yes", "No"])
-    basement = st.selectbox("Basement", ["Yes", "No"])
-
-    predict_button = st.button("🔮 Predict Price")
-
-# --- PREDICTION LOGIC ---
+# --- PREDICTION ---
 if predict_button:
-    if model is None or model_columns is None:
-        st.error("❌ Model not available. Please check your deployment files.")
+    if model is None:
+        st.error("❌ Model not loaded.")
     else:
         try:
-            # Build input data matching the training column names
-            user_input = {
-                'citi': [city],
-                'street': [street],
-                'sqft': [sqft],
-                'bed': [bed],
-                'bath': [bath],
-                'n_citi': [parking],  # if model expects numeric encoding
-                'mainroad': [1 if mainroad == "Yes" else 0],
-                'basement': [1 if basement == "Yes" else 0]
-            }
+            # Build input DataFrame exactly like training features
+            user_input = pd.DataFrame([{
+                "citi": city,
+                "street": street,
+                "sqft": sqft,
+                "bed": bed,
+                "bath": bath,
+                "n_citi": parking,
+                "mainroad": 1 if mainroad == "Yes" else 0,
+                "basement": 1 if basement == "Yes" else 0
+            }])
 
-            input_df = pd.DataFrame(user_input)
-
-            # Encode 'n_citi' if required
-            if "n_citi" in model_columns:
-                city_map = {c: i for i, c in enumerate(CITY_STREET_MAP.keys())}
-                input_df["n_citi"] = input_df["citi"].map(city_map).fillna(0).astype(int)
-
-            # Align input columns with model columns
-            final_df = pd.DataFrame(columns=model_columns)
-            final_df = pd.concat([final_df, input_df], ignore_index=True).fillna(0)
-            final_df = final_df[model_columns]  # ensure correct order
-
-            # Make prediction
-            price = model.predict(final_df)[0]
+            # Directly pass raw input to pipeline
+            price = model.predict(user_input)[0]
 
             st.subheader("💰 Predicted House Price:")
             st.success(f"₹ {price:,.0f}")
 
         except Exception as e:
             st.error(f"❌ Prediction failed: {e}")
-            st.exception(e)  # show traceback for debugging
-
+            st.exception(e)
