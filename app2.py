@@ -59,8 +59,7 @@ if predict_button:
     if model is None or model_columns is None:
         st.error("❌ Model not available. Please check your deployment files.")
     else:
-        try:
-           # Match training column names
+        try:       # Match training column names
 user_input = {
     'citi': [city],
     'street': [street],
