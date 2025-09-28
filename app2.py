@@ -138,7 +138,7 @@ if predict_button:
             price = model.predict(user_input)[0]
 
             st.subheader("💰 Predicted House Price:")
-            st.success(f"₹ {price:,.0f}")
+            st.success(f"$ {price:,.0f}")
 
         except Exception as e:
             st.error(f"❌ Prediction failed: {e}")
