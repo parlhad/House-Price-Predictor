@@ -30,16 +30,18 @@ model, model_columns = load_model_assets()
 
 # --- APP HEADER ---
 st.title("🏠 House Price Predictor")
-st.markdown("Provide property details in the sidebar and get an instant price prediction.")
+st.markdown("Provide property details below and get an instant price prediction.")
 
-# --- SIDEBAR INPUTS ---
-with st.sidebar:
-    st.header("Property Details")
+# --- HORIZONTAL CENTERED INPUTS USING COLUMNS ---
+col1, col2, col3 = st.columns([1, 2, 1])  # Middle column will hold the inputs
 
+with col2:
     CITY_STREET_MAP = {
         "New York": ["Broadway", "5th Avenue", "Wall Street"],
         "Los Angeles": ["Sunset Blvd", "Rodeo Drive", "Hollywood Blvd"]
     }
+
+    st.subheader("Property Details")
 
     city = st.selectbox("City", options=list(CITY_STREET_MAP.keys()))
     street = st.selectbox("Street", options=CITY_STREET_MAP[city])
@@ -59,26 +61,27 @@ if predict_button:
     if model is None or model_columns is None:
         st.error("❌ Model not available. Please check your deployment files.")
     else:
-        try:       # Match training column names
-user_input = {
-    'citi': [city],
-    'street': [street],
-    'sqft': [area],
-    'bed': [bedrooms],
-    'bath': [bathrooms],
-    'n_citi': [parking],   # assuming 'n_citi' was parking or similar feature
-    'mainroad': [1 if mainroad == "Yes" else 0],
-    'basement': [1 if basement == "Yes" else 0]
-}
-input_df = pd.DataFrame(user_input)
+        try:
+            # Build input data matching the training column names
+            user_input = {
+                'citi': [city],
+                'street': [street],
+                'sqft': [sqft],
+                'bed': [bed],
+                'bath': [bath],
+                'n_citi': [parking],  # if model expects numeric encoding
+                'mainroad': [1 if mainroad == "Yes" else 0],
+                'basement': [1 if basement == "Yes" else 0]
+            }
 
+            input_df = pd.DataFrame(user_input)
 
-            # If model expects 'n_citi', create a numeric encoding
+            # Encode 'n_citi' if required
             if "n_citi" in model_columns:
                 city_map = {c: i for i, c in enumerate(CITY_STREET_MAP.keys())}
                 input_df["n_citi"] = input_df["citi"].map(city_map).fillna(0).astype(int)
 
-            # Align columns with model
+            # Align input columns with model columns
             final_df = pd.DataFrame(columns=model_columns)
             final_df = pd.concat([final_df, input_df], ignore_index=True).fillna(0)
             final_df = final_df[model_columns]  # ensure correct order
@@ -92,3 +95,4 @@ input_df = pd.DataFrame(user_input)
         except Exception as e:
             st.error(f"❌ Prediction failed: {e}")
             st.exception(e)  # show traceback for debugging
+
