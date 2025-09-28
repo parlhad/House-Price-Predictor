@@ -1,31 +1,36 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import os
 
 # --- APP CONFIG ---
 st.set_page_config(
-    page_title="House Price Predictor",
+    page_title="🏠 House Price Predictor",
     page_icon="🏠",
-    layout="centered",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # --- LOAD MODEL ---
 @st.cache_resource
 def load_model():
-    """Load the prediction model from file."""
+    model = None
     try:
-        model = joblib.load("model.joblib")
-        return model
-    except FileNotFoundError:
-        st.error("⚠️ **Model file not found.** Please make sure 'model.joblib' is in the same folder as your app.")
-        return None
+        if os.path.exists("model.joblib"):
+            model = joblib.load("model.joblib")
+        else:
+            st.warning("⚠️ Model file not found. Upload model.joblib.")
     except Exception as e:
-        st.error(f"An error occurred while loading the model: {e}")
-        return None
+        st.error(f"❌ Error loading model: {e}")
+    return model
 
 model = load_model()
 
-# --- DATA ---
+# --- APP HEADER ---
+st.title("🏠 House Price Predictor")
+st.markdown("Provide property details below and get an instant price prediction.")
+
+# --- USER INPUT GRID (4x2) ---
 CITY_STREET_MAP = {
     "New York": ["Broadway", "5th Avenue", "Wall Street"],
     "Los Angeles": ["Sunset Blvd", "Rodeo Drive", "Hollywood Blvd"],
@@ -84,50 +89,40 @@ CITY_STREET_MAP = {
     "Monrovia, CA": ["2737 Hempstead Lane"]
 }
 
-# --- APP HEADER ---
-st.title("🏠 House Price Predictor")
+st.subheader("Property Details")
 
-# --- ADD IMAGE HERE ---
-st.image("Screenshot_2024-03-20_at_2.51.52_PM.png", caption="The Rising Cost of Living", use_column_width=True)
-
-st.markdown("Enter the property details below to get an instant price prediction.")
-
-# --- USER INPUTS ---
-st.subheader("📍 Location")
-col1, col2 = st.columns(2)
+# --- FIRST ROW (City, Street, Sqft, Bedrooms) ---
+col1, col2, col3, col4 = st.columns(4)
 with col1:
     city = st.selectbox("City", options=list(CITY_STREET_MAP.keys()))
 with col2:
     street = st.selectbox("Street", options=CITY_STREET_MAP[city])
-
-st.subheader("📐 Property Size & Rooms")
-sqft = st.slider("Area (sqft)", min_value=100, max_value=10000, value=1500, step=50)
-
-col3, col4, col5 = st.columns(3)
 with col3:
-    bed = st.slider("Bedrooms", min_value=1, max_value=10, value=3)
+    sqft = st.number_input("Area (sqft)", 100, 10000, 1500, step=50)
 with col4:
-    bath = st.slider("Bathrooms", min_value=1, max_value=10, value=2)
+    bed = st.number_input("Bedrooms", 1, 10, 3)
+
+# --- SECOND ROW (Bathrooms, Parking, Mainroad, Basement) ---
+col5, col6, col7, col8 = st.columns(4)
 with col5:
-    parking = st.slider("Parking Spots", min_value=0, max_value=10, value=2)
-
-st.subheader("✨ Additional Features")
-col6, col7 = st.columns(2)
+    bath = st.number_input("Bathrooms", 1, 10, 2)
 with col6:
-    mainroad = st.toggle("Mainroad Access", value=True)
+    parking = st.number_input("Parking Spots", 0, 10, 2)
 with col7:
-    basement = st.toggle("Has a Basement", value=False)
+    mainroad = st.selectbox("Mainroad Access", ["Yes", "No"])
+with col8:
+    basement = st.selectbox("Basement", ["Yes", "No"])
 
-st.divider()
+# --- PREDICT BUTTON ---
+predict_button = st.button("🔮 Predict Price")
 
-# --- PREDICTION ---
-predict_button = st.button("🔮 Predict Price", use_container_width=True)
-
+# --- PREDICTION LOGIC ---
 if predict_button:
     if model is None:
-        st.error("❌ **Prediction failed.** The model is not loaded.")
+        st.error("❌ Model not loaded.")
     else:
         try:
+            # Build input DataFrame exactly like training features
             user_input = pd.DataFrame([{
                 "citi": city,
                 "street": street,
@@ -135,14 +130,16 @@ if predict_button:
                 "bed": bed,
                 "bath": bath,
                 "n_citi": parking,
-                "mainroad": 1 if mainroad else 0,
-                "basement": 1 if basement else 0
+                "mainroad": 1 if mainroad == "Yes" else 0,
+                "basement": 1 if basement == "Yes" else 0
             }])
 
+            # Directly pass raw input to pipeline
             price = model.predict(user_input)[0]
 
             st.subheader("💰 Predicted House Price:")
-            st.success(f"**₹ {price:,.0f}**")
+            st.success(f"₹ {price:,.0f}")
 
         except Exception as e:
-            st.error(f"An error occurred during prediction: {e}")
+            st.error(f"❌ Prediction failed: {e}")
+            st.exception(e)
