@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-
+# --- MODEL & ASSETS LOADING ---
+@st.cache_resource
 def load_model_assets():
     """Load model and model columns from .joblib files."""
     try:
