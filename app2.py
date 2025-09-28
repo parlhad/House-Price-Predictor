@@ -1,56 +1,80 @@
-# app.py
-
 import streamlit as st
 import pandas as pd
-import numpy as np
-import cloudpickle
+import joblib
 
-# --- Page Configuration ---
-st.set_page_config(
-    page_title="House Price Predictor",
-    page_icon="🏠",
-    layout="centered"
-)
 
+def load_model_assets():
+    """Load model and model columns from .joblib files."""
+    try:
+        with open('final_model.joblib', 'rb') as f:
+            model = joblib.load(f)
+        with open('model_columns.joblib', 'rb') as f:
+            model_columns = joblib.load(f)
+        return model, model_columns
+    except Exception as e:
+        st.error(f"Error loading model assets: {e}")
+        return None, None
+
+model, model_columns = load_model_assets()
+
+# --- APP CONFIG ---
+st.set_page_config(page_title="🏠 House Price Predictor", layout="wide")
 st.title("🏠 House Price Predictor")
-st.write("Predict house prices using Linear Regression and Decision Tree models.")
+st.markdown("Enter house details in the sidebar to predict the price.")
 
-# --- Load Models Safely ---
-@st.cache_resource
-def load_model(model_path):
-    with open(model_path, "rb") as f:
-        return cloudpickle.load(f)
+# --- SIDEBAR INPUTS ---
+with st.sidebar:
+    st.header("Property Details")
 
-LR_model = load_model("LR_model.pkl")
-DT_model = load_model("DT_model.pkl")
+    # Location dependent dropdown example
+    CITY_STREET_MAP = {
+        "New York": ["Broadway", "5th Avenue", "Wall Street"],
+        "Los Angeles": ["Sunset Blvd", "Rodeo Drive", "Hollywood Blvd"]
+    }
+    city = st.selectbox("City", options=list(CITY_STREET_MAP.keys()))
+    street = st.selectbox("Street", options=CITY_STREET_MAP[city])
 
-# --- User Input ---
-st.sidebar.header("Enter House Details")
+    # Numerical inputs
+    area = st.number_input("Area (sqft)", 100, 10000, 1500, step=50)
+    bedrooms = st.number_input("Bedrooms", 1, 10, 3)
+    bathrooms = st.number_input("Bathrooms", 1, 10, 2)
+    parking = st.number_input("Parking Spots", 0, 10, 2)
 
-n_citi = st.sidebar.number_input("Number of Cities", min_value=0, step=1, value=1)
-bed = st.sidebar.number_input("Number of Bedrooms", min_value=0, step=1, value=3)
-bath = st.sidebar.number_input("Number of Bathrooms", min_value=0, step=1, value=2)
-sqft = st.sidebar.number_input("Square Footage", min_value=0, step=10, value=1500)
-citi = st.sidebar.text_input("City", value="Los Angeles")
-street = st.sidebar.text_input("Street", value="Main St")
+    # Categorical features
+    mainroad = st.selectbox("Mainroad Access", options=["Yes", "No"])
+    basement = st.selectbox("Basement", options=["Yes", "No"])
 
-input_data = pd.DataFrame({
-    'n_citi': [n_citi],
-    'bed': [bed],
-    'bath': [bath],
-    'sqft': [sqft],
-    'citi': [citi],
-    'street': [street]
-})
+    # Predict button
+    predict_button = st.button("Predict Price")
 
-# --- Prediction ---
-if st.button("Predict Price"):
-    pred_lr = LR_model.predict(input_data)[0]
-    pred_dt = DT_model.predict(input_data)[0]
+# --- PREDICTION LOGIC ---
+if model is not None and model_columns is not None and predict_button:
+    user_input = {
+        'City': [city],
+        'Street': [street],
+        'area': [area],
+        'bedrooms': [bedrooms],
+        'bathrooms': [bathrooms],
+        'parking': [parking],
+        'mainroad': [1 if mainroad=="Yes" else 0],
+        'basement': [1 if basement=="Yes" else 0]
+    }
 
-    st.success(f"Linear Regression Prediction: ${pred_lr:,.2f}")
-    st.success(f"Decision Tree Prediction: ${pred_dt:,.2f}")
+    input_df = pd.DataFrame(user_input)
 
-# --- Optional: Compare Models ---
-st.info("Linear Regression tends to generalize better for larger datasets.")
-st.info("Decision Tree may overfit smaller datasets but can capture non-linear patterns.")
+    try:
+        # Align input with model columns
+        final_df = pd.DataFrame(columns=model_columns)
+        final_df = pd.concat([final_df, input_df]).fillna(0)
+        final_df = final_df[model_columns]
+
+        # Make prediction
+        price = model.predict(final_df)[0]
+        st.subheader("Predicted House Price:")
+        st.success(f"💰 ₹ {price:,.0f}")
+
+    except Exception as e:
+        st.error(f"Prediction failed: {e}")
+
+elif predict_button:
+    st.error("Model or columns not loaded. Check your model files.")
