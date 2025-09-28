@@ -3,7 +3,7 @@ import pandas as pd
 import joblib
 import os
 
-# --- APP CONFIG (must be before any Streamlit call) ---
+# --- APP CONFIG ---
 st.set_page_config(
     page_title="🏠 House Price Predictor",
     page_icon="🏠",
@@ -44,9 +44,9 @@ with st.sidebar:
     city = st.selectbox("City", options=list(CITY_STREET_MAP.keys()))
     street = st.selectbox("Street", options=CITY_STREET_MAP[city])
 
-    area = st.number_input("Area (sqft)", 100, 10000, 1500, step=50)
-    bedrooms = st.number_input("Bedrooms", 1, 10, 3)
-    bathrooms = st.number_input("Bathrooms", 1, 10, 2)
+    sqft = st.number_input("Area (sqft)", 100, 10000, 1500, step=50)
+    bed = st.number_input("Bedrooms", 1, 10, 3)
+    bath = st.number_input("Bathrooms", 1, 10, 2)
     parking = st.number_input("Parking Spots", 0, 10, 2)
 
     mainroad = st.selectbox("Mainroad Access", ["Yes", "No"])
@@ -60,18 +60,24 @@ if predict_button:
         st.error("❌ Model not available. Please check your deployment files.")
     else:
         try:
-            # Build input data
+            # Build input data using training column names
             user_input = {
-                'City': [city],
-                'Street': [street],
-                'area': [area],
-                'bedrooms': [bedrooms],
-                'bathrooms': [bathrooms],
+                'citi': [city],                   # matches training column
+                'street': [street],               # lowercase
+                'sqft': [sqft],                   # area renamed to sqft
+                'bed': [bed],                     # bedrooms -> bed
+                'bath': [bath],                   # bathrooms -> bath
                 'parking': [parking],
                 'mainroad': [1 if mainroad == "Yes" else 0],
-                'basement': [1 if basement == "Yes" else 0]
+                'basement': [1 if basement == "Yes" else 0],
+                # n_citi: numeric city encoding (dummy for now, will auto-fill below)
             }
             input_df = pd.DataFrame(user_input)
+
+            # If model expects 'n_citi', create a numeric encoding
+            if "n_citi" in model_columns:
+                city_map = {c: i for i, c in enumerate(CITY_STREET_MAP.keys())}
+                input_df["n_citi"] = input_df["citi"].map(city_map).fillna(0).astype(int)
 
             # Align columns with model
             final_df = pd.DataFrame(columns=model_columns)
@@ -86,4 +92,4 @@ if predict_button:
 
         except Exception as e:
             st.error(f"❌ Prediction failed: {e}")
-            st.exception(e)  # shows traceback for debugging
+            st.exception(e)  # show traceback for debugging
