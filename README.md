@@ -1,39 +1,41 @@
-# House-Price-Predictor
-# House-Price-Predictor
+# 🏠 House Price Predictor
 
-## 📌 Overview
+## 🎯 Overview
 
-**House-Price-Predictor** is a machine learning project designed to estimate house prices based on various features. The project encompasses data preprocessing, model training, and a user-friendly web application for real-time predictions.
+**House Price Predictor** is a Machine Learning web application designed to estimate house prices based on key property features.  
+The project leverages **Python**, **scikit-learn**, and **Streamlit** to demonstrate an end-to-end ML workflow — from data preprocessing and model training to deployment through an interactive web interface.
 
----
-
-## 🚀 Live Demo
-
-Experience the interactive house price prediction app here:
-
-👉 [https://house-price-predictor-ezd7dbafbfb4bqkzruuaav.streamlit.app/](https://house-price-predictor-ezd7dbafbfb4bqkzruuaav.streamlit.app/)
+This project showcases practical ML engineering skills and is well-suited for **internships, entry-level data roles, and technical interviews**.
 
 ---
 
-## 🧪 Project Structure
+## 🚀 Live Demo (Interactive Web App)
 
-The repository includes the following files:
+🔗 **Live Application:**  
+👉 *(Add your Streamlit Cloud link here if deployed)*
 
-- `DSSFinal1.ipynb`: Jupyter Notebook for data exploration, preprocessing, and model training.
-- `app2.py`: Python script for the Streamlit web application interface.
-- `model.joblib`: Serialized machine learning model for predictions.
-- `model_columns.joblib`: Serialized column transformer for preprocessing.
-- `requirements.txt`: List of Python dependencies.
-- `socal2.csv`: Dataset used for training the model.
+Users can input house details and instantly receive predicted price estimates through a clean and responsive UI.
 
 ---
 
-## 🛠️ Installation
+## 🔍 Key Features
 
-To set up the project locally:
+✔ Predicts house prices using Machine Learning regression  
+✔ End-to-end ML pipeline (training → serialization → deployment)  
+✔ Feature preprocessing and scaling handled correctly  
+✔ Interactive and modern UI using Streamlit  
+✔ Real-time predictions  
+✔ Clean project structure and reusable code  
+✔ Resume-ready and recruiter-friendly project  
 
-1. Clone the repository:
+---
 
-   ```bash
-   git clone https://github.com/parlhad/House-Price-Predictor.git
-   cd House-Price-Predictor
+## 🏘️ Problem Statement
+
+Accurate house price estimation is critical for buyers, sellers, and real-estate professionals.  
+This project applies Machine Learning techniques to predict house prices based on historical data and property features, helping users make **data-driven decisions**.
+
+---
+
+## 📦 Repository Structure
+
