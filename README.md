@@ -50,3 +50,68 @@ House-Price-Predictor/
 └── README.md # Project documentation
 
 ```
+---
+
+---
+
+## 🛠️ Built With
+
+| Technology | Purpose |
+|----------|--------|
+| Python | Core programming language |
+| scikit-learn | Model training & evaluation |
+| joblib | Model persistence |
+| Streamlit | Web application deployment |
+| Pandas | Data processing |
+| NumPy | Numerical computation |
+
+---
+
+## 🧠 How It Works
+
+### 1️⃣ Data Collection
+The dataset includes important real-estate features such as:
+- Area / Size
+- Number of Bedrooms
+- Number of Bathrooms
+- Location-based or numerical property attributes *(as per dataset)*
+
+---
+
+### 2️⃣ Data Preprocessing
+- Handling numeric features
+- Feature scaling using `StandardScaler`
+- Preparing data for model training
+
+---
+
+### 3️⃣ Model Training
+- Regression-based Machine Learning model
+- Trained using scikit-learn
+- Evaluated for predictive performance
+
+---
+
+### 4️⃣ Model Serialization
+- Model and scaler saved using `joblib`
+- Enables fast reuse without retraining
+
+---
+
+### 5️⃣ Deployment
+- Interactive Streamlit web application
+- Accepts user inputs
+- Applies preprocessing
+- Returns predicted house price instantly
+
+---
+
+## 📥 Getting Started (Local Setup)
+
+Follow the steps below to run the project locally.
+
+### 🔽 Clone the Repository
+```bash
+git clone https://github.com/parlhad/House-Price-Predictor.git
+cd House-Price-Predictor
+```
