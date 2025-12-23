@@ -115,3 +115,33 @@ Follow the steps below to run the project locally.
 git clone https://github.com/parlhad/House-Price-Predictor.git
 cd House-Price-Predictor
 ```
+
+### Install Dependencies
+```
+python -m pip install -r requirements.txt
+```
+### Run the Streamlit App
+```
+python -m streamlit run app.py
+
+```
+---
+
+### 📌 Usage Instructions
+
+Enter house-related details
+
+Click Predict Price
+
+View the estimated house price instantly
+
+The application provides quick, interactive predictions suitable for demonstration and learning.
+
+🧪 Example Prediction
+Area (sq.ft)	Bedrooms	Bathrooms	Predicted Price
+1200	2	2	₹45,00,000
+2000	3	3	₹85,00,000
+
+---
+
+
