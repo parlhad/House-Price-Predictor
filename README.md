@@ -39,3 +39,14 @@ This project applies Machine Learning techniques to predict house prices based o
 
 ## 📦 Repository Structure
 
+```
+House-Price-Predictor/
+├── app.py # Streamlit web application
+├── house_price_model.pkl # Trained ML model
+├── scaler.pkl # Feature scaler used during training
+├── HousePrice.ipynb # Model training & experimentation notebook
+├── requirements.txt # Project dependencies
+├── .gitignore
+└── README.md # Project documentation
+
+```
